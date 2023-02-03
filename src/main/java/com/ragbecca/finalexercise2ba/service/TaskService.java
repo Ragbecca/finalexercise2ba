@@ -15,7 +15,6 @@ import java.util.List;
 public class TaskService {
 
     private final TaskRepository taskRepository;
-    private final TaskCategoryRepository taskCategoryRepository;
 
     public List<Task> getAllTasksUser(String username) {
         return taskRepository.findAllByUsername(username);

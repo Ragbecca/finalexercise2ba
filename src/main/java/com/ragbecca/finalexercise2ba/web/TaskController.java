@@ -3,6 +3,7 @@ package com.ragbecca.finalexercise2ba.web;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragbecca.finalexercise2ba.dto.CreateCategoryRequest;
 import com.ragbecca.finalexercise2ba.dto.TaskDto;
+import com.ragbecca.finalexercise2ba.dto.TaskEditDto;
 import com.ragbecca.finalexercise2ba.dto.UserDto;
 import com.ragbecca.finalexercise2ba.entity.Task;
 import com.ragbecca.finalexercise2ba.entity.TaskCategory;
@@ -19,7 +20,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @RestController
@@ -55,11 +58,38 @@ public class TaskController {
         task.setTaskName(taskDto.getTaskName());
         if (taskDto.getDeadlineDate() != null) {
             task.setDeadlineDate(taskDto.getDeadlineDate());
-        }
-        if (taskDto.getDeadlineTime() != null) {
-            task.setDeadlineTime(taskDto.getDeadlineTime());
+            if (taskDto.getDeadlineTime() != null) {
+                task.setDeadlineTime(taskDto.getDeadlineTime());
+            } else {
+                task.setDeadlineTime(Time.valueOf(LocalTime.MIDNIGHT));
+            }
         }
         task.setUsername(taskDto.getUsername());
+        taskRepository.save(task);
+        return task;
+    }
+
+    @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @PostMapping("/edit")
+    public Task editTask(@Valid @RequestBody TaskEditDto taskEditDto) {
+        Task task = taskRepository.findById(String.valueOf(taskEditDto.getId())).get();
+
+        if (!Objects.equals(task.getTaskName(), taskEditDto.getTaskName())) {
+            task.setTaskName(taskEditDto.getTaskName());
+        }
+
+        if (!Objects.equals(task.getTaskCategory().getId(), taskEditDto.getTaskCategoryId())) {
+            task.setTaskCategory(taskCategoryRepository.findById(taskEditDto.getTaskCategoryId()).get());
+        }
+
+        if (task.getDeadlineDate() != taskEditDto.getDeadlineDate()) {
+            task.setDeadlineDate(taskEditDto.getDeadlineDate());
+        }
+
+        if (task.getDeadlineTime() != taskEditDto.getDeadlineTime()) {
+            task.setDeadlineTime(taskEditDto.getDeadlineTime());
+        }
         taskRepository.save(task);
         return task;
     }

@@ -17,6 +17,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
@@ -36,7 +38,7 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/signup")
     public AuthResponse signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
-        if (userService.hasUserWithUsername(signUpRequest.getUsername())) {
+        if (userService.hasUserWithUsername(signUpRequest.getUsername()) || Objects.equals(signUpRequest.getUsername(), "unknown")) {
             throw new DuplicatedUserInfoException(String.format("Username %s already been used", signUpRequest.getUsername()));
         }
         if (userService.hasUserWithEmail(signUpRequest.getEmail())) {

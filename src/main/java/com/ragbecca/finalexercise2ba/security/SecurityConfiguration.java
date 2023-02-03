@@ -91,9 +91,9 @@ public class SecurityConfiguration {
             taskRepository.save(task);
         }
 
-        if (quoteRepository.findAllByUsername("").isEmpty()) {
+        if (quoteRepository.findAllByUsername("unknown").isEmpty()) {
             Quote quote = new Quote();
-            quote.setUsername("");
+            quote.setUsername("unknown");
             quote.setQuote("Life isn’t about getting and having, it’s about giving and being.");
             quote.setAuthor("Kevin Kruse");
             quoteRepository.save(quote);
