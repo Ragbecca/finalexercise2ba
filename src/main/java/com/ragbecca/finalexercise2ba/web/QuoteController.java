@@ -47,6 +47,21 @@ public class QuoteController {
         return quote;
     }
 
+    @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @PostMapping("/delete")
+    public boolean deleteQuote(@Valid @RequestBody Long quoteId) {
+        if (quoteRepository.findById(quoteId).isEmpty()) {
+            return false;
+        }
+        Quote quote = quoteRepository.findById(quoteId).get();
+        if (quoteTodayRepository.findByQuote(quote).isPresent()) {
+            quoteTodayRepository.delete(quoteTodayRepository.findByQuote(quote).get());
+        }
+        quoteRepository.delete(quote);
+        return true;
+    }
+
     private static final String BEARER_KEY_SECURITY_SCHEME = "bearer-key";
     private final QuoteRepository quoteRepository;
     private final QuoteTodayRepository quoteTodayRepository;
