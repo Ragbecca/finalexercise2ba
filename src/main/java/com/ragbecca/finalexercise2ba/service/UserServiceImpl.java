@@ -25,10 +25,6 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final AuthenticationManager authenticationManager;
-    private final TokenProvider tokenProvider;
-    private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<User> getUsers() {
@@ -61,30 +57,6 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException(String.format("User with username %s not found", username)));
     }
 
-    private String authenticateAndGetToken(String username, String password) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        return tokenProvider.generate(authentication);
-    }
-
-    public AuthResponse login(LoginRequest loginRequest) {
-        String token = authenticateAndGetToken(loginRequest.getUsername(), loginRequest.getPassword());
-        return new AuthResponse(token);
-    }
-
-    public AuthResponse signup(SignUpRequest signUpRequest) {
-        if (userService.hasUserWithUsername(signUpRequest.getUsername()) || Objects.equals(signUpRequest.getUsername(), "unknown")) {
-            throw new DuplicatedUserInfoException(String.format("Username %s already been used", signUpRequest.getUsername()));
-        }
-        if (userService.hasUserWithEmail(signUpRequest.getEmail())) {
-            throw new DuplicatedUserInfoException(String.format("Email %s already been used", signUpRequest.getEmail()));
-        }
-
-        userService.saveUser(mapSignUpRequestToUser(signUpRequest));
-
-        String token = authenticateAndGetToken(signUpRequest.getUsername(), signUpRequest.getPassword());
-        return new AuthResponse(token);
-    }
-
     @Override
     public User saveUser(User user) {
         return userRepository.save(user);
@@ -93,14 +65,5 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(User user) {
         userRepository.delete(user);
-    }
-
-    private User mapSignUpRequestToUser(SignUpRequest signUpRequest) {
-        User user = new User();
-        user.setUsername(signUpRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-        user.setEmail(signUpRequest.getEmail());
-        user.setRole(SecurityConfiguration.USER);
-        return user;
     }
 }
