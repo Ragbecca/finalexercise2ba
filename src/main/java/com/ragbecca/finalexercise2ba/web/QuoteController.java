@@ -1,10 +1,9 @@
 package com.ragbecca.finalexercise2ba.web;
 
 import com.ragbecca.finalexercise2ba.dto.QuoteRequest;
-import com.ragbecca.finalexercise2ba.dto.TaskDto;
-import com.ragbecca.finalexercise2ba.entity.*;
-import com.ragbecca.finalexercise2ba.repository.QuoteRepository;
-import com.ragbecca.finalexercise2ba.repository.QuoteTodayRepository;
+import com.ragbecca.finalexercise2ba.entity.Quote;
+import com.ragbecca.finalexercise2ba.entity.QuoteToday;
+import com.ragbecca.finalexercise2ba.service.QuoteService;
 import com.ragbecca.finalexercise2ba.service.QuoteTodayService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -15,18 +14,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.ragbecca.finalexercise2ba.security.Constant.BEARER_KEY_SECURITY_SCHEME;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/quote")
 public class QuoteController {
 
+    private final QuoteService quoteService;
+    private final QuoteTodayService quoteTodayService;
+
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
     @GetMapping("/user/{username}")
     public List<Quote> getQuotes(@PathVariable String username) {
-        if (quoteRepository.findAllByUsername(username).isEmpty()) {
-            return quoteRepository.findAllByUsername("unknown");
-        }
-        return quoteRepository.findAllByUsername(username);
+        return quoteService.getQuotesUsername(username);
     }
 
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
@@ -39,33 +40,14 @@ public class QuoteController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/add")
     public Quote createQuote(@Valid @RequestBody QuoteRequest quoteRequest) {
-        Quote quote = new Quote();
-        quote.setQuote(quoteRequest.quote());
-        quote.setAuthor(quoteRequest.author());
-        quote.setUsername(quoteRequest.username());
-        quoteRepository.save(quote);
-        return quote;
+        return quoteService.createQuoteUser(quoteRequest);
     }
 
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping("/delete")
-    public boolean deleteQuote(@Valid @RequestBody Long quoteId) {
-        if (quoteRepository.findById(quoteId).isEmpty()) {
-            return false;
-        }
-        Quote quote = quoteRepository.findById(quoteId).get();
-        if (quoteTodayRepository.findByQuote(quote).isPresent()) {
-            quoteTodayRepository.delete(quoteTodayRepository.findByQuote(quote).get());
-        }
-        quoteRepository.delete(quote);
-        return true;
+    public void deleteQuote(@Valid @RequestBody Long quoteId) {
+        quoteService.deleteQuoteFromIdAndAllDailyQuotesConnected(quoteId);
     }
-
-    private static final String BEARER_KEY_SECURITY_SCHEME = "bearer-key";
-    private final QuoteRepository quoteRepository;
-    private final QuoteTodayRepository quoteTodayRepository;
-
-    private final QuoteTodayService quoteTodayService;
 
 }

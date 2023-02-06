@@ -1,13 +1,16 @@
 package com.ragbecca.finalexercise2ba.security;
 
-import com.ragbecca.finalexercise2ba.entity.*;
+import com.ragbecca.finalexercise2ba.entity.Quote;
+import com.ragbecca.finalexercise2ba.entity.Task;
+import com.ragbecca.finalexercise2ba.entity.TaskCategory;
+import com.ragbecca.finalexercise2ba.entity.User;
 import com.ragbecca.finalexercise2ba.repository.QuoteRepository;
 import com.ragbecca.finalexercise2ba.repository.TaskCategoryRepository;
 import com.ragbecca.finalexercise2ba.repository.TaskRepository;
 import com.ragbecca.finalexercise2ba.repository.UserRepository;
 import com.ragbecca.finalexercise2ba.service.UserDetailsServiceImpl;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -29,16 +32,18 @@ import java.sql.Time;
 
 @EnableWebSecurity
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfiguration {
 
+    public static final String USER = "USER";
+    private final UserRepository userRepository;
+
+    private final TokenAuthenticationFilter tokenAuthenticationFilter;
+    private final TaskCategoryRepository taskCategoryRepository;
+    private final TaskRepository taskRepository;
+    private final QuoteRepository quoteRepository;
     @Resource
     private UserDetailsServiceImpl userDetailsService;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private TokenAuthenticationFilter tokenAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -116,18 +121,8 @@ public class SecurityConfiguration {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    public static final String ADMIN = "ADMIN";
-    public static final String USER = "USER";
-    @Autowired
-    private TaskCategoryRepository taskCategoryRepository;
-    @Autowired
-    private TaskRepository taskRepository;
-    @Autowired
-    private QuoteRepository quoteRepository;
 }

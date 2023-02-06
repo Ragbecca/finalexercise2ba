@@ -23,6 +23,8 @@ import java.util.Optional;
 @Component
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
+    public static final String TOKEN_HEADER = "Authorization";
+    public static final String TOKEN_PREFIX = "Bearer ";
     private final UserDetailsService userDetailsService;
     private final TokenProvider tokenProvider;
 
@@ -52,7 +54,4 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         }
         return Optional.empty();
     }
-
-    public static final String TOKEN_HEADER = "Authorization";
-    public static final String TOKEN_PREFIX = "Bearer ";
 }

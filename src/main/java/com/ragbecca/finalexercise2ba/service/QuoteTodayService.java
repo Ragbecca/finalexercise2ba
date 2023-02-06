@@ -66,7 +66,7 @@ public class QuoteTodayService {
         } else {
             quotes = quoteRepository.findAllByUsername(username);
         }
-        int randomNumber  = getRandomNumber(0, quotes.size());
+        int randomNumber = getRandomNumber(0, quotes.size());
         Quote quote = quotes.get(randomNumber);
         QuoteToday quoteToday = new QuoteToday();
         quoteToday.setQuote(quote);

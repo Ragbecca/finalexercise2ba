@@ -1,11 +1,9 @@
 package com.ragbecca.finalexercise2ba.dto;
 
-import com.ragbecca.finalexercise2ba.entity.TaskCategory;
 import lombok.Getter;
 
 import java.sql.Date;
 import java.sql.Time;
-import java.util.Arrays;
 
 @Getter
 public class TaskDto {

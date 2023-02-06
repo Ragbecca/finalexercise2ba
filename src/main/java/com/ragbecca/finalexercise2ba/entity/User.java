@@ -22,7 +22,7 @@ public class User implements UserDetails {
     @Column(name = "username", nullable = false)
     @Getter
     @Setter
-    @Size(min=4, max=255)
+    @Size(min = 4, max = 255)
     private String username;
 
     @Column(name = "email", nullable = false)

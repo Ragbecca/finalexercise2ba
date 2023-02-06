@@ -1,6 +1,5 @@
 package com.ragbecca.finalexercise2ba.repository;
 
-import com.ragbecca.finalexercise2ba.entity.Task;
 import com.ragbecca.finalexercise2ba.entity.Website;
 import org.springframework.data.jpa.repository.JpaRepository;
 

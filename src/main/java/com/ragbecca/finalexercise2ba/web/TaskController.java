@@ -1,14 +1,9 @@
 package com.ragbecca.finalexercise2ba.web;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.ragbecca.finalexercise2ba.dto.CreateCategoryRequest;
 import com.ragbecca.finalexercise2ba.dto.TaskDto;
 import com.ragbecca.finalexercise2ba.dto.TaskEditDto;
-import com.ragbecca.finalexercise2ba.dto.UserDto;
 import com.ragbecca.finalexercise2ba.entity.Task;
 import com.ragbecca.finalexercise2ba.entity.TaskCategory;
-import com.ragbecca.finalexercise2ba.repository.TaskCategoryRepository;
-import com.ragbecca.finalexercise2ba.repository.TaskRepository;
 import com.ragbecca.finalexercise2ba.service.TaskCategoryService;
 import com.ragbecca.finalexercise2ba.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,11 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Date;
-import java.sql.Time;
-import java.time.LocalTime;
 import java.util.List;
-import java.util.Objects;
+
+import static com.ragbecca.finalexercise2ba.security.Constant.BEARER_KEY_SECURITY_SCHEME;
 
 @RequiredArgsConstructor
 @RestController
@@ -31,8 +24,6 @@ public class TaskController {
 
     private final TaskService taskService;
     private final TaskCategoryService taskCategoryService;
-    private final TaskCategoryRepository taskCategoryRepository;
-    private final TaskRepository taskRepository;
 
 
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
@@ -51,86 +42,34 @@ public class TaskController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/add")
     public Task createTask(@Valid @RequestBody TaskDto taskDto) {
-        Task task = new Task();
-        TaskCategory category = taskCategoryRepository.findById(taskDto.getTaskCategoryId()).get();
-        task.setTaskCategory(category);
-        task.setStatus(false);
-        task.setTaskName(taskDto.getTaskName());
-        if (taskDto.getDeadlineDate() != null) {
-            task.setDeadlineDate(taskDto.getDeadlineDate());
-            if (taskDto.getDeadlineTime() != null) {
-                task.setDeadlineTime(taskDto.getDeadlineTime());
-            } else {
-                task.setDeadlineTime(Time.valueOf(LocalTime.MIDNIGHT));
-            }
-        }
-        task.setUsername(taskDto.getUsername());
-        taskRepository.save(task);
-        return task;
+        return taskService.createTaskAndReturn(taskDto);
     }
 
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping("/edit")
     public Task editTask(@Valid @RequestBody TaskEditDto taskEditDto) {
-        Task task = taskRepository.findById(String.valueOf(taskEditDto.getId())).get();
-
-        if (!Objects.equals(task.getTaskName(), taskEditDto.getTaskName())) {
-            task.setTaskName(taskEditDto.getTaskName());
-        }
-
-        if (!Objects.equals(task.getTaskCategory().getId(), taskEditDto.getTaskCategoryId())) {
-            task.setTaskCategory(taskCategoryRepository.findById(taskEditDto.getTaskCategoryId()).get());
-        }
-
-        if (task.getDeadlineDate() != taskEditDto.getDeadlineDate()) {
-            task.setDeadlineDate(taskEditDto.getDeadlineDate());
-        }
-
-        if (task.getDeadlineTime() != taskEditDto.getDeadlineTime()) {
-            task.setDeadlineTime(taskEditDto.getDeadlineTime());
-        }
-        taskRepository.save(task);
-        return task;
+        return taskService.editTaskAndReturn(taskEditDto);
     }
 
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping("/status/done")
     public Task editStatusTaskToTrue(@Valid @RequestBody Long taskId) {
-        if (taskRepository.findById(String.valueOf(taskId)).isEmpty()) {
-            return null;
-        }
-        Task task = taskRepository.findById(String.valueOf(taskId)).get();
-        task.setStatus(true);
-        taskRepository.save(task);
-        return task;
+        return taskService.changeStatusAndReturn(taskId, true);
     }
 
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping("/status/undone")
     public Task editStatusTaskToFalse(@Valid @RequestBody Long taskId) {
-        if (taskRepository.findById(String.valueOf(taskId)).isEmpty()) {
-            return null;
-        }
-        Task task = taskRepository.findById(String.valueOf(taskId)).get();
-        task.setStatus(false);
-        taskRepository.save(task);
-        return task;
+        return taskService.changeStatusAndReturn(taskId, false);
     }
 
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)})
     @ResponseStatus(HttpStatus.ACCEPTED)
     @PostMapping("/delete")
-    public boolean deleteTask(@Valid @RequestBody Long taskId) {
-        if (taskRepository.findById(String.valueOf(taskId)).isEmpty()) {
-            return false;
-        }
-        Task task = taskRepository.findById(String.valueOf(taskId)).get();
-        taskRepository.delete(task);
-        return true;
+    public void deleteTask(@Valid @RequestBody Long taskId) {
+        taskService.deleteTask(taskId);
     }
-
-    private static final String BEARER_KEY_SECURITY_SCHEME = "bearer-key";
 }
